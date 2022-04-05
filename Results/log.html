@@ -5,7 +5,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta content="Robot Framework 4.1.3 (Python 2.7.17 on linux2)" name="Generator">
+<meta content="Robot Framework 5.0 (Python 3.6.9 on linux)" name="Generator">
 <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKcAAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAAqAAAAAAAAAAAAAAAAAAAALIAAAD/AAAA4AAAANwAAADcAAAA3AAAANwAAADcAAAA3AAAANwAAADcAAAA4AAAAP8AAACxAAAAAAAAAKYAAAD/AAAAuwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC/AAAA/wAAAKkAAAD6AAAAzAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN8AAAD/AAAA+gAAAMMAAAAAAAAAAgAAAGsAAABrAAAAawAAAGsAAABrAAAAawAAAGsAAABrAAAADAAAAAAAAADaAAAA/wAAAPoAAADDAAAAAAAAAIsAAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAANEAAAAAAAAA2gAAAP8AAAD6AAAAwwAAAAAAAAAAAAAAMgAAADIAAAAyAAAAMgAAADIAAAAyAAAAMgAAADIAAAAFAAAAAAAAANoAAAD/AAAA+gAAAMMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADaAAAA/wAAAPoAAADDAAAAAAAAADwAAAB8AAAAAAAAAGAAAABcAAAAAAAAAH8AAABKAAAAAAAAAAAAAAAAAAAA2gAAAP8AAAD6AAAAwwAAAAAAAADCAAAA/wAAACkAAADqAAAA4QAAAAAAAAD7AAAA/wAAALAAAAAGAAAAAAAAANoAAAD/AAAA+gAAAMMAAAAAAAAAIwAAAP4AAAD/AAAA/wAAAGAAAAAAAAAAAAAAAMkAAAD/AAAAigAAAAAAAADaAAAA/wAAAPoAAADDAAAAAAAAAAAAAAAIAAAAcAAAABkAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAA2gAAAP8AAAD7AAAAywAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN4AAAD/AAAAqwAAAP8AAACvAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALIAAAD/AAAAsgAAAAAAAAC5AAAA/wAAAMoAAADAAAAAwAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAMkAAAD/AAAAvAAAAAAAAAAAAAAAAAAAAKwAAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAArQAAAAAAAAAAwAMAAIABAAAf+AAAP/wAAD/8AAAgBAAAP/wAAD/8AAA//AAAJIwAADHEAAA//AAAP/wAAB/4AACAAQAAwAMAAA==">
 <style media="all" type="text/css">
 /* Generic and misc styles */
@@ -318,6 +318,9 @@ th.stats-col-graph:hover {
     top: 0;
     padding: 3px;
     cursor: default;
+}
+.element-header .label {
+    margin-right: 0.5em;
 }
 .name {
     font-weight: bold;
@@ -966,6 +969,7 @@ window.model = (function () {
     }
     function Keyword(data) {
         var kw = createModelObject(data);
+        var flatTypes = ['RETURN', 'BREAK', 'CONTINUE'];
         kw.libname = data.libname;
         kw.fullName = (kw.libname ? kw.libname + '.' : '') + kw.name;
         kw.type = data.type;
@@ -1350,8 +1354,8 @@ window.testdata = function () {
     var _statistics = null;
     var LEVELS = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FAIL', 'SKIP'];
     var STATUSES = ['FAIL', 'PASS', 'SKIP', 'NOT RUN'];
-    var KEYWORD_TYPES = ['KEYWORD', 'SETUP', 'TEARDOWN', 'FOR', 'VAR', 'IF', 'ELSE IF', 'ELSE'];
-    var MESSAGE_TYPE = 8;
+    var KEYWORD_TYPES = ['KEYWORD', 'SETUP', 'TEARDOWN', 'FOR', 'ITERATION', 'IF', 'ELSE IF', 'ELSE', 'RETURN',
+                         'TRY', 'EXCEPT', 'FINALLY', 'WHILE', 'CONTINUE', 'BREAK'];
     function addElement(elem) {
         if (!elem.id)
             elem.id = uniqueId();
@@ -1372,10 +1376,10 @@ window.testdata = function () {
                 elapsed];
     }
     function createMessage(element, strings) {
-        return model.Message(LEVELS[element[2]],
-                             util.timestamp(element[1]),
-                             strings.get(element[3]),
-                             strings.get(element[4]));
+        return model.Message(LEVELS[element[1]],
+                             util.timestamp(element[0]),
+                             strings.get(element[2]),
+                             strings.get(element[3]));
     }
     function parseStatus(stats) {
         return STATUSES[stats[0]];
@@ -1386,7 +1390,7 @@ window.testdata = function () {
         };
     }
     function createBodyItem(parent, element, strings, index) {
-        if (element[0] == MESSAGE_TYPE)
+        if (element.length < 5)
             return createMessage(element, strings);
         var messages = util.filter(parent.children(), function (child) {
             return child.type == 'message';
@@ -1799,31 +1803,31 @@ function stopPropagation(event) {
 window.output = {};
 </script>
 <script type="text/javascript">
-window.output["suite"] = [1,2,3,4,[],[0,0,42,5],[],[[6,0,0,[],[0,37,1,7],[]]],[[1,8,9,0,0,0,0,0,[0,30,7],[[0,10,0,0,0,11,0,0,[0,34,0],[[8,34,5,12]]],[0,13,0,0,0,0,0,0,[3,36,1],[]],[0,14,15,0,16,17,0,0,[3,37,0],[]]]],[2,18,9,0,0,0,0,0,[0,39,3,19],[[0,20,0,0,0,0,0,0,[0,41,0],[[8,41,5,19]]]]]],[1,0,1,0]];
+window.output["suite"] = [1,2,3,4,[],[1,0,43530],[],[[5,0,0,[],[1,10282,5513],[[0,6,0,0,0,7,0,0,[1,10295,5499],[[0,8,9,0,10,11,0,0,[1,10299,158],[[10305,2,12]]],[0,8,9,0,10,13,0,0,[1,10457,111],[[10458,2,14]]],[0,15,9,0,16,17,0,0,[1,10569,83],[[10569,2,18]]],[0,19,9,0,20,21,0,0,[1,10652,23],[]],[0,22,9,0,23,24,0,0,[1,10675,29],[[10704,2,25]]],[0,26,27,0,28,29,0,0,[1,10705,5001],[[15705,2,30]]],[0,31,9,0,32,0,0,0,[1,15706,88],[]]]]]],[5,0,0,[],[1,15799,5470],[[0,6,0,0,0,33,0,0,[1,15805,5462],[[0,8,9,0,10,11,0,0,[1,15806,127],[[15806,2,12]]],[0,8,9,0,10,13,0,0,[1,15933,108],[[15934,2,14]]],[0,15,9,0,16,17,0,0,[1,16042,72],[[16042,2,18]]],[0,19,9,0,20,21,0,0,[1,16114,9],[]],[0,22,9,0,23,24,0,0,[1,16123,26],[[16149,2,25]]],[0,26,27,0,28,29,0,0,[1,16149,5001],[[21150,2,30]]],[0,31,9,0,32,0,0,0,[1,21151,116],[]]]]]],[5,0,0,[],[1,21272,5497],[[0,6,0,0,0,34,0,0,[1,21281,5481],[[0,8,9,0,10,11,0,0,[1,21282,169],[[21283,2,35]]],[0,8,9,0,10,13,0,0,[1,21451,138],[[21452,2,36]]],[0,15,9,0,16,17,0,0,[1,21589,110],[[21590,2,18]]],[0,19,9,0,20,21,0,0,[1,21699,15],[]],[0,22,9,0,23,24,0,0,[1,21714,24],[[21738,2,37]]],[0,26,27,0,28,29,0,0,[1,21738,5001],[[26739,2,30]]],[0,31,9,0,32,0,0,0,[1,26740,21],[]]]]]],[5,0,0,[],[1,26771,5671],[[0,6,0,0,0,38,0,0,[1,26785,5657],[[0,8,9,0,10,11,0,0,[1,26786,241],[[26787,2,39]]],[0,8,9,0,10,13,0,0,[1,27028,191],[[27028,2,40]]],[0,15,9,0,16,17,0,0,[1,27221,79],[[27221,2,18]]],[0,19,9,0,20,21,0,0,[1,27302,13],[]],[0,22,9,0,23,24,0,0,[1,27315,29],[[27344,2,37]]],[0,26,27,0,28,29,0,0,[1,27344,5002],[[32345,2,30]]],[0,31,9,0,32,0,0,0,[1,32346,96],[]]]]]],[5,0,0,[],[1,32443,5380],[[0,6,0,0,0,41,0,0,[1,32446,5376],[[0,8,9,0,10,11,0,0,[1,32447,141],[[32448,2,35]]],[0,8,9,0,10,13,0,0,[1,32588,115],[[32590,2,36]]],[0,15,9,0,16,17,0,0,[1,32703,62],[[32704,2,18]]],[0,19,9,0,20,21,0,0,[1,32765,9],[]],[0,22,9,0,23,24,0,0,[1,32775,24],[[32799,2,37]]],[0,26,27,0,28,29,0,0,[1,32799,5001],[[37800,2,30]]],[0,31,9,0,32,0,0,0,[1,37801,20],[]]]]]],[5,0,0,[],[1,37830,5583],[[0,6,0,0,0,42,0,0,[1,37839,5573],[[0,8,9,0,10,11,0,0,[1,37841,303],[[37842,2,43]]],[0,8,9,0,10,13,0,0,[1,38145,151],[[38146,2,44]]],[0,15,9,0,16,17,0,0,[1,38296,70],[[38297,2,18]]],[0,19,9,0,20,21,0,0,[1,38367,8],[]],[0,22,9,0,23,24,0,0,[1,38376,24],[[38399,2,37]]],[0,26,27,0,28,29,0,0,[1,38400,5001],[[43400,2,30]]],[0,31,9,0,32,0,0,0,[1,43401,10],[]]]]]]],[[1,45,46,0,0,0,0,0,[1,3357,6923],[[0,47,9,0,48,49,0,0,[1,3358,4813],[[3358,2,50]]],[0,51,9,0,52,0,0,0,[1,8172,105],[]],[0,26,27,0,28,53,0,0,[1,8277,2002],[[10279,2,54]]]]],[2,55,46,0,0,0,0,0,[1,43416,114],[[0,56,9,0,57,0,0,0,[1,43420,109],[]]]]],[6,6,0,0]];
 </script>
 <script type="text/javascript">
 window.output["strings"] = [];
 </script>
 <script type="text/javascript">
-window.output["strings"] = window.output["strings"].concat(["*","*DDT Excel","*/home/stsch0219/PycharmProjects/Automation-Testing-With-Robot-Framew/Tests/Others/DDT_Excel.robot","*../Tests/Others/DDT_Excel.robot","*<p>DDT approach using builtin keywords\x3c/p>","*Suite setup failed:\nNo keyword with name 'open browser' found.\n\nAlso suite teardown failed:\nNo keyword with name 'close browser' found.","*Verify login with invalid scenarios","eNqFzLENwjAQBdDeU/wuHQPQsQDKCgb/CCvmzro7y8r2aRFN3gBvzUYJ+KhBOGN0bLk2lnt6KnYeU61g1vhA8pdYtFPwMp1OW7DpkHJL6dFc0X+vYLaiUy66d1Pn/3cCtuc1cQ==","*Start testcase","*common","*open browser","*${url}, ${browser}","*No keyword with name 'open browser' found.","*maximize browser window","*Sleep","*BuiltIn","*<p>Pauses the test executed for the given time.\x3c/p>","*2s","*Finish testcase","*No keyword with name 'close browser' found.","*close browser","eNp1kMFOwzAQRO/9ir0FDq6hoAK9VWpRkVAbQSTEqXKcbWNqeyN7I5q/xxECidIcPfNmPbvLECiA8bAzFiGTNTmUkaOurybXDzLvdK2CywN9oOYo5y2TU2zIiwIjG78Xb4Zr8UIlsXgMyuGn7J0oN1xjiHKxKLbLo0Y7Dj2TAXmwxiPczODJNRT6IUkpgwodZK9o0ZvWPX8LGexUKlb9sMu+7gzWBI6qNjX26ccKTlKjIiiNpdIHuHAUGQJq9AxaWQtWRb6cjSAN8TjK34vVZp3Pi1Uvna4/tpQysjS+N9sYZCoqm45r8pPx3VlRNlaxON5Pt9NbkTZtj2Lv2/Noegk+DHtkq2Gz6rwlVQ3X/huJhlE06SZqj/F36hmwMpH/g8PIFzvLxfM=","eNp1kMFOwzAQRO/9ir0FDq6hoAK9VWpRkVCJSqSKE3KcbWNqeyN7I5q/xxECidIcPftmPLvLECiA8bAzFiGTNTmUkaOurybXDzLvdK2CywN9oOYo5y2TU2zIiwIjG78XW8O12FBJLB6DcvgpNxipDRqjXCwKqck58uPQExmQB2s8ws0MnlxDoY9IShlU6CB7RYvetO75W8hgp1Kt6odd9mVnsCZwVLWpr0//VXDiGhVBaSyVPsCFo8gQUKNn0MpasCry5WwEKcTjKH8rVi/rfF6seul0+bGl5JGl8f2wjUGmorLpuCY/Gd+dFWVjFYvj/fR9eivSpu1R7H17Hk0vwYfhGdlqeFh13pKqhmv/tUTDKJp0E7XH+Jt6BqxM5P/gMPIF3t7FXw==","eNp1kDFPwzAQhff+itsCg2uooEC3SikqSxuhSIipcmy3MXV80fkCzb/HGQABzej3vnd+dysiJHAB9s5byGSNjZWRo66vZtcPsuh1ragpCN+s5iiXHWOj2GEQpY3swkG8OK7FM1bI4pFUYz/k4ES55dpSlHle7lYnbf2UBiYDDOBdsHC7gKemRRqGJKUiRT1kuWKVk3u3lMFepU7mC1sNTRewQWjQdKlsSJ8Z+AlMSlLaVkof4aLByEBW28CglffgVeTLxQRSPthJ8Vqut5tiWa4H6e/SU48pIysXBrOLJFM92fZcY5hN786KsvWKxel+vpvfiLRfdxKH0J1H00vwcdxDb8ZN0wePyozX/h2Jjq1o003UwcbvqWdA4yL/B8eRT/PUwZM="]);
+window.output["strings"] = window.output["strings"].concat(["*","*DDT Excel","*/home/stsch0219/PycharmProjects/Automation-Testing-With-Robot-Framew/Tests/Others/DDT_Excel.robot","*../Tests/Others/DDT_Excel.robot","*<p>DDT approach using builtin keywords\x3c/p>","*Verify login with invalid scenarios","*Various login scenarios","*Epic sadface: Username is required","*Input Text","*SeleniumLibrary","*<p>Types the given <code>text\x3c/code> into the text field identified by <code>locator\x3c/code>.\x3c/p>","*${textbox_username}, ${username}, clear:True","*Typing text '' into text field '<a href=\"xpath://input[@id='user-name\">xpath://input[@id='user-name\x3c/a>']'.","*${txtbox_password}, ${username}, clear:True","*Typing text '' into text field '<a href=\"xpath://input[@id='password\">xpath://input[@id='password\x3c/a>']'.","*Click Button","*<p>Clicks the button identified by <code>locator\x3c/code>.\x3c/p>","*${login_button}","*Clicking button '<a href=\"xpath://input[@id='login-button\">xpath://input[@id='login-button\x3c/a>']'.","*Wait Until Page Contains Element","*<p>Waits until the element <code>locator\x3c/code> appears on the current page.\x3c/p>","*${actual_error_msg}","*Element Should Contain","*<p>Verifies that element <code>locator\x3c/code> contains text <code>expected\x3c/code>.\x3c/p>","*${actual_error_msg}, ${expected_error_msg}","*Element '<a href=\"xpath://*[@id=&quot;login_button_container&quot;]//h3\">xpath://*[@id=\"login_button_container\"]//h3\x3c/a>' contains text 'Epic sadface: Username is required'.","*Sleep","*BuiltIn","*<p>Pauses the test executed for the given time.\x3c/p>","*5s","*Slept 5 seconds","*Reload Page","*<p>Simulates user reloading page.\x3c/p>","*secret_sauce, Epic sadface: Username is required","*standard_user, Epic sadface: Username and password do not match any user in this service","*Typing text 'standard_user' into text field '<a href=\"xpath://input[@id='user-name\">xpath://input[@id='user-name\x3c/a>']'.","*Typing text 'standard_user' into text field '<a href=\"xpath://input[@id='password\">xpath://input[@id='password\x3c/a>']'.","*Element '<a href=\"xpath://*[@id=&quot;login_button_container&quot;]//h3\">xpath://*[@id=\"login_button_container\"]//h3\x3c/a>' contains text 'Epic sadface: Username and password do not match any user in this service'.","*standard_u, secret_sauce, Epic sadface: Username and password do not match any user in this service","*Typing text 'standard_u' into text field '<a href=\"xpath://input[@id='user-name\">xpath://input[@id='user-name\x3c/a>']'.","*Typing text 'standard_u' into text field '<a href=\"xpath://input[@id='password\">xpath://input[@id='password\x3c/a>']'.","*standard_user, secret_sa, Epic sadface: Username and password do not match any user in this service","*standard_us, secret_sa, Epic sadface: Username and password do not match any user in this service","*Typing text 'standard_us' into text field '<a href=\"xpath://input[@id='user-name\">xpath://input[@id='user-name\x3c/a>']'.","*Typing text 'standard_us' into text field '<a href=\"xpath://input[@id='password\">xpath://input[@id='password\x3c/a>']'.","*Start testcase","*common","*Open Browser","*<p>Opens a new browser instance to the optional <code>url\x3c/code>.\x3c/p>","*${url}, ${browser}","*Opening browser 'chrome' to base url '<a href=\"https://www.saucedemo.com/\">https://www.saucedemo.com/\x3c/a>'.","*Maximize Browser Window","*<p>Maximizes current browser window.\x3c/p>","*2s","*Slept 2 seconds","*Finish testcase","*Close Browser","*<p>Closes the current browser.\x3c/p>","*Multiple tests with name 'Verify login with invalid scenarios' executed in suite 'DDT Excel'."]);
 </script>
 <script type="text/javascript">
-window.output["stats"] = [[{"elapsed":"00:00:00","fail":1,"label":"All Tests","pass":0,"skip":0}],[],[{"elapsed":"00:00:00","fail":1,"id":"s1","label":"DDT Excel","name":"DDT Excel","pass":0,"skip":0}]];
+window.output["stats"] = [[{"elapsed":"00:00:33","fail":0,"label":"All Tests","pass":6,"skip":0}],[],[{"elapsed":"00:00:44","fail":0,"id":"s1","label":"DDT Excel","name":"DDT Excel","pass":6,"skip":0}]];
 </script>
 <script type="text/javascript">
-window.output["errors"] = [[8,22,4,21],[8,25,4,22],[8,28,4,23]];
+window.output["errors"] = [[15797,3,58],[21270,3,58],[26771,3,58],[32443,3,58],[37830,3,58]];
 </script>
 <script type="text/javascript">
-window.output["baseMillis"] = 1649138587970;
+window.output["baseMillis"] = 1649139535239;
 </script>
 <script type="text/javascript">
-window.output["generated"] = 48;
+window.output["generated"] = 43618;
 </script>
 <script type="text/javascript">
 window.output["expand_keywords"] = null;
 </script>
 <script type="text/javascript">
-window.settings = {"defaultLevel":"INFO","minLevel":"FAIL","reportURL":"report.html","rpa":false,"splitLogBase":"log","title":""};
+window.settings = {"defaultLevel":"INFO","minLevel":"INFO","reportURL":"report.html","rpa":false,"splitLogBase":"log","title":""};
 </script>
 <title></title>
 </head>
@@ -2123,7 +2127,7 @@ function addExecutionLog(main) {
     <div class="element-header closed" onclick="toggleKeyword('${id}')">
       <div class="element-header-left" title="${type}  {{if name}}{{html fullName}}  {{/if}}[${status}]">
         <span class="elapsed" title="Elapsed time">${times.elapsedTime}</span>
-        <span class="label keyword ${status.toLowerCase()}">${type}</span>
+        <span class="label ${status.toLowerCase()}">${type}</span>
         <span>{{html assign}}</span>
         <span class="name"><span class="parent-name">{{html libname}}{{if libname}} . {{/if}}</span>{{html name}}</span>
         <span class="arg">{{html arguments}}</span>
@@ -2131,7 +2135,7 @@ function addExecutionLog(main) {
       <div class="element-header-right" onclick="stopPropagation(event)">
         <a class="expand" title="Expand all" href="javascript:expandAll('${id}')"></a>
         <a class="collapse" title="Collapse all" href="javascript:collapseAll('${id}')"></a>
-        <a class="link" title="Link to this keyword" href="#${id}" onclick="makeElementVisible('${id}')"></a>
+        <a class="link" title="Link to this item" href="#${id}" onclick="makeElementVisible('${id}')"></a>
       </div>
       <div class="element-header-toggle" title="Toggle visibility"></div>
     </div>
